@@ -118,25 +118,31 @@ app.post("/validate", (req, res) => {
 // xlsx para alimentos
 
 app.get("/alimentos/xlsx", (req, res) => {
-  connection.query("SELECT * FROM Alimento", (err, rows) => {
-    if (err) {
-      console.error("Error de consulta:", err);
-      return res.status(500).send("Error de servidor");
+  connection.query(
+    "SELECT * FROM Alimento LEFT OUTER JOIN Marca ON Alimento.m_id = Marca.m_id NATURAL JOIN UnidadMedida ORDER BY a_nombre",
+    (err, rows) => {
+      if (err) {
+        console.error("Error de consulta:", err);
+        return res.status(500).send("Error de servidor");
+      }
+
+      const wb = xlsx.utils.book_new();
+      const ws = xlsx.utils.json_to_sheet(rows);
+      xlsx.utils.book_append_sheet(wb, ws, "Alimentos");
+
+      const buffer = xlsx.write(wb, { type: "buffer", bookType: "xlsx" });
+
+      res.setHeader(
+        "Content-Disposition",
+        "attachment; filename=alimentos.xlsx"
+      );
+      res.setHeader(
+        "Content-Type",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      );
+      res.send(buffer);
     }
-
-    const wb = xlsx.utils.book_new();
-    const ws = xlsx.utils.json_to_sheet(rows);
-    xlsx.utils.book_append_sheet(wb, ws, "Alimentos");
-
-    const buffer = xlsx.write(wb, { type: "buffer", bookType: "xlsx" });
-
-    res.setHeader("Content-Disposition", "attachment; filename=alimentos.xlsx");
-    res.setHeader(
-      "Content-Type",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    );
-    res.send(buffer);
-  });
+  );
 });
 
 // Obtener fechas de caducidad de UN ALIMENTO ESPECÍFICO (Lata de Atún 200 g)

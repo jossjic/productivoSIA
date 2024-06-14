@@ -86,6 +86,7 @@ export function NavBar() {
     "/codePage",
     "/restorePass",
     "/newPass",
+    "/adminPage",
     "/",
   ];
   const isHiddenRoute = hiddenRoutes.includes(location.pathname);
